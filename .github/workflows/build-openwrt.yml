@@ -16,7 +16,6 @@ env:
   DIY_P2_SH: diy-part2.sh
   FILES: files
   TZ: Asia/Shanghai
-  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   build:
@@ -174,7 +173,7 @@ jobs:
         tag: N1-24.10_${{ env.tag_name }}
         artifacts: /workdir/upload/openwrt*
         allowUpdates: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_TOKEN }}
         body: |
               ---  使用说明 ---
               
