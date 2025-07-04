@@ -66,7 +66,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo -E apt-get -qq update -y
-        sudo -E apt-get -qq install $(curl -fsSL https://tinyurl.com/depends-ubuntu)
+        sudo -E apt-get -qq install -y $(curl -fsSL https://raw.githubusercontent.com/v2clash/ImmortalWrt-N1/refs/heads/main/depends)
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
