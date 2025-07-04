@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 修改IP
-sed -i 's/192.168.1.1/192.168.1.2/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/192.168.1.4/g' package/base-files/files/bin/config_generate
 # 修改主机名
 #sed -i 's/ImmortalWrt/OpenWrt/g' package/base-files/files/bin/config_generate
 
