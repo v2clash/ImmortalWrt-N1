@@ -100,11 +100,14 @@ jobs:
       run: df -hT
 
     - name: 打包固件
-      uses: unifreq/openwrt_packit@master
+      uses: ophub/flippy-openwrt-actions@main
       env:
+        WHOAMI: v2
         OPENWRT_ARMVIRT: openwrt/bin/targets/*/*/*.tar.gz
         PACKAGE_SOC: s905d
+        KERNEL_REPO_URL: v2clash/build-armbian
         KERNEL_VERSION_NAME: 6.6.y_5.15.1
+        KERNEL_AUTO_LATEST: true
 
     - name: 整理文件
       id: organize
