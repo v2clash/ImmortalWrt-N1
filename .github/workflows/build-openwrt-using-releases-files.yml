@@ -92,7 +92,7 @@ jobs:
         curl -fsSL "${latest_url}" -o "${armsr_tarfile_path}/${openwrt_filename}"
         [[ "${?}" -ne "0" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
 
-        echo "build_tag=OpenWrt_armv8_${{ inputs.openwrt_storage }}_$(date +"%Y.%m")" >> ${GITHUB_OUTPUT}
+        echo "DATE=$(date +"%Y.%m")" >> $GITHUB_ENV
         echo "status=success" >> ${GITHUB_OUTPUT}
         
     - name: 打包内核
@@ -109,8 +109,7 @@ jobs:
     - name: 发布固件
       uses: ncipollo/release-action@v1
       with:
-        name: ImmortalWrt-N1 → ${{ env.DATE }}
-        tag: ImmortalWrt-N1-24.10_${{ env.tag_name }}
+        tag: ImmortalWrt-N1 → ${{ env.DATE }}
         artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
         allowUpdates: true
         removeArtifacts: false
