@@ -9,7 +9,7 @@ on:
         required: false
         default: 'false'
       build_bypass:
-        description: '编译旁路由版本'
+        description: '编译旁路由'
         required: false
         default: true
         type: boolean
