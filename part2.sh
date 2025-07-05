@@ -20,7 +20,3 @@ sed -i "/timezone='CST-8'/a\\\t\t\tset system.@system[-1].zonename='Asia/Shangha
 
 # 修改默认主题（如果存在）
 sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
-
-# 添加晶晨宝盒
-rm -rf package/luci-app-amlogic
-git clone https://github.com/ophub/luci-app-amlogic.git package/luci-app-amlogic
