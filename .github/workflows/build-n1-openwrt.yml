@@ -125,7 +125,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=N1_旁路由_$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "release_tag=N1_旁路由_$(date +"%Y.%m")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "🚀 斐讯N1 OpenWRT旁路由版固件" >> release.txt
         echo "📅 编译时间: $(date +"%Y年%m月%d日%H时%M分")" >> release.txt
