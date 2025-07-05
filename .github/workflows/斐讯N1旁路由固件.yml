@@ -1,4 +1,4 @@
-name: 编译斐讯N1 OpenWRT固件
+name: 斐讯N1旁路由固件
 
 on:
   repository_dispatch:
