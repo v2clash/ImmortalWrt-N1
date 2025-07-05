@@ -1,0 +1,180 @@
+name: Build OpenWrt using releases files
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+   inputs:
+      ssh:
+        description: 'SSH连接到Actions'
+        required: false
+        default: false
+        type: boolean
+  #schedule:
+    #- cron: 0 16 * * 4
+
+env:
+  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_BRANCH: master
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: config
+  DIY_P1_SH: diy-part1.sh
+  DIY_P2_SH: diy-part2.sh
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: 创建编译空间挂载点
+      run: |
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        
+    - name: 最大化编译空间
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 2048
+        swap-size-mb: 1024
+        build-mount-path: /workdir
+        overprovision-lvm: 'true'
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
+
+    - name: 检查Actions
+      uses: actions/checkout@v4
+
+    - name: 检查服务器配置
+      run: |
+        echo "警告⚠"
+        echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
+        echo "云编译建议取消勾选Node.js及其相关插件！"
+        echo "已知CPU型号（降序）：8370C,8272CL,8171M,E5系列"
+        echo "--------------------------CPU信息--------------------------"
+        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
+        echo -e "CPU核心及版本信息：$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+        echo "--------------------------内存信息--------------------------"
+        echo "已安装内存详细信息："
+        sudo lshw -short -C memory | grep GiB
+        echo -e "\n"
+        echo "--------------------------硬盘信息--------------------------"
+        echo -e  "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l) \n"
+        echo "硬盘详情："
+        df -Th
+
+    - name: 初始化编译环境
+      id: init
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        docker rmi $(docker images -q) 2>/dev/null
+        [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android 2>/dev/null
+        sudo swapoff -a
+        sudo rm -f /swapfile /mnt/swapfile
+        sudo -E apt-get -y update
+        sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
+        sudo -E apt-get -y install $(curl -fsSL https://tinyurl.com/ubuntu2204-make-openwrt)
+        sudo -E systemctl daemon-reload
+        #sudo -E apt-get -y full-upgrade
+        sudo -E apt-get -y autoremove --purge
+        sudo -E apt-get clean
+        sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
+        sudo rm -rf ~/{.cargo,.dotnet,.rustup}
+        sudo timedatectl set-timezone "${TZ}"
+        echo "status=success" >> ${GITHUB_OUTPUT}
+
+    - name: 创建物理磁盘
+      run: |
+        mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
+        root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
+        sudo truncate -s "${mnt_size}"G /mnt/mnt.img
+        sudo truncate -s "${root_size}"G /root.img
+        sudo losetup /dev/loop6 /mnt/mnt.img
+        sudo losetup /dev/loop7 /root.img
+        sudo pvcreate /dev/loop6
+        sudo pvcreate /dev/loop7
+        sudo vgcreate github /dev/loop6 /dev/loop7
+        sudo lvcreate -n runner -l 100%FREE github
+        sudo mkfs.xfs /dev/github/runner
+        sudo mkdir -p /builder
+        sudo mount /dev/github/runner /builder
+        sudo chown -R runner.runner /builder
+        df -Th
+
+    - name: 下载底包
+      id: down
+      working-directory: /builder
+      if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
+      run: |
+        armsr_tarfile_repo="ophub/amlogic-s9xxx-openwrt"
+        releases_tag_keywords="OpenWrt_immortalwrt_"
+
+        armsr_tarfile_path="openwrt/output"
+        [[ -d "${armsr_tarfile_path}" ]] || mkdir -p ${armsr_tarfile_path}
+        ln -sf /builder/openwrt ${GITHUB_WORKSPACE}/openwrt
+
+        latest_version=$(curl -s \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${armsr_tarfile_repo}/releases?per_page=100 | \
+              jq -r --arg RTK "${releases_tag_keywords}" \
+              --arg BOARD "-rootfs.tar.gz" \
+              '[.[] | select(.tag_name | contains($RTK))] |
+              map(.assets[] | select(.browser_download_url | endswith($BOARD))) |
+              sort_by(.updated_at) |
+              reverse |
+              .[0] |
+              {data: .updated_at, url: .browser_download_url}')
+
+        [[ -z "${latest_version}" || "${latest_version}" == "null" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+        latest_updated_at="$(echo ${latest_version} | jq -r '.data')"
+        latest_url="$(echo ${latest_version} | jq -r '.url')"
+
+        openwrt_filename="${latest_url##*/}"
+        curl -fsSL "${latest_url}" -o "${armsr_tarfile_path}/${openwrt_filename}"
+        [[ "${?}" -ne "0" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
+
+        echo "build_tag=OpenWrt_armv8_${{ inputs.openwrt_storage }}_$(date +"%Y.%m")" >> ${GITHUB_OUTPUT}
+        echo "status=success" >> ${GITHUB_OUTPUT}
+        
+    - name: 打包内核
+      uses: ophub/flippy-openwrt-actions@main
+      if: (!cancelled())
+      env:
+        WHOAMI: v2
+        OPENWRT_ARMVIRT: openwrt/output/*rootfs.tar.gz
+        PACKAGE_SOC: s905d
+        KERNEL_REPO_URL: v2clash/build-armbian
+        KERNEL_VERSION_NAME: 6.6.y_6.12.y
+        KERNEL_AUTO_LATEST: true
+        
+    - name: 整理文件
+      run: mv /opt/openwrt_packit/output/* /workdir/upload/
+
+    - name: 发布固件
+      uses: ncipollo/release-action@v1
+      with:
+        name: ImmortalWrt-N1 → ${{ env.DATE }}
+        tag: N1-24.10_${{ env.tag_name }}
+        artifacts: /workdir/upload/openwrt*
+        allowUpdates: true
+        token: ${{ secrets.GH_TOKEN }}
+        body: |
+              ---  使用说明 ---
+              
+              源码：${{ env.REPO_URL }}
+              分支：${{ env.REPO_BRANCH }}
+              
+              网关：192.168.1.4
+              用户名：root
+              密码：password
+
+    - name: 删除运行记录
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        retain_days: 0
+        keep_minimum_runs: 3
