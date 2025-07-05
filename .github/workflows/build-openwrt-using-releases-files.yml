@@ -92,7 +92,6 @@ jobs:
         curl -fsSL "${latest_url}" -o "${armsr_tarfile_path}/${openwrt_filename}"
         [[ "${?}" -ne "0" ]] && echo "Invalid OpenWrt rootfs download address." && exit 1
 
-        echo "DATE=$(date +"%Y.%m")" >> $GITHUB_ENV
         echo "status=success" >> ${GITHUB_OUTPUT}
         
     - name: 打包内核
@@ -109,8 +108,7 @@ jobs:
     - name: 发布固件
       uses: ncipollo/release-action@v1
       with:
-        name: ImmortalWrt-N1 → ${{ env.DATE }}
-        tag: ImmortalWrt-N1
+        tag: 远程底包快速打包
         artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
         allowUpdates: true
         removeArtifacts: false
