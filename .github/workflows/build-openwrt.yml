@@ -7,7 +7,7 @@ on:
       ssh:
         description: 'SSH连接到Actions'
         required: false
-        default: true
+        default: false
         type: boolean
   #schedule:
     #- cron: 0 16 * * 4
