@@ -105,17 +105,16 @@ jobs:
         KERNEL_REPO_URL: v2clash/build-armbian
         KERNEL_VERSION_NAME: 6.6.y_6.12.y
         KERNEL_AUTO_LATEST: true
-        
-    - name: 整理文件
-      run: mv /opt/openwrt_packit/output/* /workdir/upload/
 
     - name: 发布固件
       uses: ncipollo/release-action@v1
       with:
         name: ImmortalWrt-N1 → ${{ env.DATE }}
-        tag: N1-24.10_${{ env.tag_name }}
-        artifacts: /workdir/upload/openwrt*
+        tag: ImmortalWrt-N1-24.10_${{ env.tag_name }}
+        artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
         allowUpdates: true
+        removeArtifacts: false
+        replacesArtifacts: true
         token: ${{ secrets.GH_TOKEN }}
         body: |
               ---  使用说明 ---
