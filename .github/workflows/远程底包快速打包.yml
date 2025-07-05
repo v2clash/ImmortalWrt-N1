@@ -1,4 +1,4 @@
-name: Build OpenWrt using releases files
+name: 远程底包快速打包
 
 on:
   repository_dispatch:
