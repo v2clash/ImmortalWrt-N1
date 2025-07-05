@@ -15,3 +15,6 @@
 
 # 替换内核
 #sed -i 's/KERNEL_PATCHVER:=5.15/KERNEL_PATCHVER:=5.4/g' ./target/linux/x86/Makefile
+
+# 添加晶晨宝盒
+echo 'src-git amlogic https://github.com/ophub/luci-app-amlogic' >>feeds.conf.default
