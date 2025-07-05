@@ -1,4 +1,4 @@
-name: 快速打包固件
+name: 本地快速打包固件
 
 on:
   repository_dispatch:
