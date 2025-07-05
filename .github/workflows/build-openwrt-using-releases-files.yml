@@ -64,8 +64,8 @@ jobs:
       working-directory: /builder
       if: ${{ steps.init.outputs.status }} == 'success' && !cancelled()
       run: |
-        armsr_tarfile_repo="v2clash/OpenWrt-N1"
-        releases_tag_keywords="N1-"
+        armsr_tarfile_repo="marsgh0096/-immortalwrt_n1_x86-"
+        releases_tag_keywords="N1_旁路由_"
 
         armsr_tarfile_path="openwrt/output"
         [[ -d "${armsr_tarfile_path}" ]] || mkdir -p ${armsr_tarfile_path}
