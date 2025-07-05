@@ -3,22 +3,11 @@ name: Build OpenWrt using releases files
 on:
   repository_dispatch:
   workflow_dispatch:
-   inputs:
-      ssh:
-        description: 'SSH连接到Actions'
-        required: false
-        default: false
-        type: boolean
+
   #schedule:
     #- cron: 0 16 * * 4
 
 env:
-  REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: master
-  FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: config
-  DIY_P1_SH: diy-part1.sh
-  DIY_P2_SH: diy-part2.sh
   TZ: Asia/Shanghai
 
 jobs:
