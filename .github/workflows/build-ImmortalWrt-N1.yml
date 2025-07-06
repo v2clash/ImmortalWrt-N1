@@ -171,16 +171,15 @@ jobs:
         KERNEL_VERSION_NAME: 6.6.y_6.12.y
         KERNEL_AUTO_LATEST: true
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        
-    - name: 整理文件
-      run: mv /opt/openwrt_packit/output/* /workdir/upload/
 
     - name: 发布固件
       uses: ncipollo/release-action@main
       with:
         tag: ${{ steps.codes.outputs.build_tag }}
-        artifacts: /workdir/upload/openwrt*
+        artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
         allowUpdates: true
+        removeArtifacts: false
+        replacesArtifacts: true
         token: ${{ secrets.GH_TOKEN }}
         body: |
               ---  使用说明 ---
