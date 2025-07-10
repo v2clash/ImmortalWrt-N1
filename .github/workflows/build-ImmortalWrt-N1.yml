@@ -9,8 +9,8 @@ on:
         required: false
         default: false
         type: boolean
-  #schedule:
-    #- cron: 0 16 * * 4
+  schedule:
+    - cron: 0 16 * * 4
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
