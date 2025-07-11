@@ -134,22 +134,10 @@ jobs:
         cd openwrt/
         [[ -d "output" ]] || mkdir output
         cp -f bin/targets/*/*/*rootfs.tar.gz output/
-        cp -f .config output/config
         rm -rf $(ls . | grep -v "^output$" | xargs) 2>/dev/null
 
         df -hT ${PWD}
         echo "status=success" >> ${GITHUB_OUTPUT}
-
-    #- name: Upload OpenWrt to Release
-    #  uses: ncipollo/release-action@main
-    #  if: ${{ steps.clean.outputs.status }} == 'success' && !cancelled()
-    #  with:
-    #    tag: ${{ steps.codes.outputs.build_tag }}
-    #    artifacts: openwrt/output/*
-    #    allowUpdates: true
-    #    removeArtifacts: false
-    #    replacesArtifacts: true
-    #    token: ${{ secrets.GH_TOKEN }}
 
     - name: 打包内核
       uses: ophub/flippy-openwrt-actions@main
@@ -162,6 +150,9 @@ jobs:
         KERNEL_VERSION_NAME: 6.6.y_6.12.y
         KERNEL_AUTO_LATEST: true
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    - name: 整理文件
+      run: cp -f .config /opt/openwrt_packit/output/config
 
     - name: 发布固件
       uses: ncipollo/release-action@main
