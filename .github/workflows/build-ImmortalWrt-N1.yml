@@ -152,7 +152,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: 整理文件
-      run: cp -f .config /opt/openwrt_packit/output/config
+      run: cp -f openwrt/.config /opt/openwrt_packit/output/config
 
     - name: 发布固件
       uses: ncipollo/release-action@main
