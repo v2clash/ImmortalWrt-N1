@@ -148,7 +148,8 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: 整理文件
-      run: cp -f openwrt/.config /opt/openwrt_packit/output/config
+      run: |
+        cp -f openwrt/.config /opt/openwrt_packit/output/config
         rm -rf /opt/openwrt_packit/output/*.sha
 
     - name: 发布固件
