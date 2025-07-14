@@ -24,3 +24,21 @@ sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/M
 # 添加晶晨宝盒
 rm -rf package/luci-app-amlogic
 git clone https://github.com/ophub/luci-app-amlogic.git package/luci-app-amlogic
+
+git clone --depth 1 https://github.com/kenzok8/small-package && \
+cd small-package && \
+mv -n luci-app-adguardhome \
+      luci-app-argon-config \
+      luci-app-homeproxy \
+      luci-app-linkease \
+      luci-app-nikki \
+      luci-app-openclash \
+      luci-app-passwall \
+      luci-app-quickstart \
+      luci-app-ssr-plus \
+      luci-app-store ../ && \
+cd .. && \
+rm -rf small-package
+
+rm -rf ./*/.git & rm -rf ./*/.gitattributes
+rm -rf ./*/.svn & rm -rf ./*/.github & rm -rf ./*/.gitignore
